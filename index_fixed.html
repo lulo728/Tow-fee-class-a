@@ -1,0 +1,65 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tow Fee Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+        h1 { text-align: center; }
+        label, input { display: block; width: 100%; margin-top: 10px; }
+        input[type="datetime-local"] { padding: 8px; }
+        button { margin-top: 20px; padding: 10px; width: 100%; font-size: 16px; }
+        .result { margin-top: 20px; font-size: 18px; font-weight: bold; white-space: pre-line; }
+    </style>
+</head>
+<body>
+    <h1>Tow Fee Calculator</h1>
+    <label for="towTime">Tow Date & Time:</label>
+    <input type="datetime-local" id="towTime">
+
+    <label for="redeemTime">Redemption Date & Time:</label>
+    <input type="datetime-local" id="redeemTime">
+
+    <button onclick="calculateFees()">Calculate Total Fee</button>
+
+    <div class="result" id="result"></div>
+
+    <script>
+        function parseDatetime(value) {
+            // Split manually to avoid mobile parsing issues
+            const [datePart, timePart] = value.split('T');
+            if (!datePart || !timePart) return null;
+            return new Date(datePart + 'T' + timePart);
+        }
+
+        function calculateFees() {
+            const towInput = document.getElementById('towTime').value;
+            const redeemInput = document.getElementById('redeemTime').value;
+
+            const towTime = parseDatetime(towInput);
+            const redeemTime = parseDatetime(redeemInput);
+
+            if (!towTime || !redeemTime || isNaN(towTime.getTime()) || isNaN(redeemTime.getTime())) {
+                document.getElementById('result').innerText = 'Please enter valid dates.';
+                return;
+            }
+
+            const baseTowFee = 131.88;
+            const dailyStorageRate = 28.12;
+            const lienFee = 196.64;
+            const gracePeriodHours = 6;
+
+            const hoursDiff = (redeemTime - towTime) / (1000 * 60 * 60);
+            let storageDays = Math.max(0, Math.ceil((hoursDiff - gracePeriodHours) / 24));
+
+            let total = baseTowFee + (storageDays * dailyStorageRate);
+            if (storageDays > 4) total += lienFee;
+
+            document.getElementById('result').innerText =
+                `Storage Days: ${storageDays}\nTotal Fee: $${total.toFixed(2)}`;
+        }
+    </script>
+</body>
+</html>
